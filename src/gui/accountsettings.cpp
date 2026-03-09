@@ -1648,6 +1648,11 @@ void AccountSettings::updateBlackListAndScheduleFolderSync(const QStringList &bl
     folder->journalDb()->setSelectiveSyncList(SyncJournalDb::SelectiveSyncE2eFoldersToRemoveFromBlacklist, {});
     for (const auto &pathToRemoteDiscover : foldersToRemoveFromBlacklist) {
         folder->journalDb()->schedulePathForRemoteDiscovery(pathToRemoteDiscover);
+        // When a folder is removed from the selective-sync blacklist we also need
+        // to rediscover local changes below that path. Otherwise files that were
+        // copied in manually while the folder was disabled can be overwritten by
+        // a download, even if their content is already identical to the server.
+        folder->schedulePathForLocalDiscovery(pathToRemoteDiscover);
     }
     FolderMan::instance()->scheduleFolder(folder);
 }
